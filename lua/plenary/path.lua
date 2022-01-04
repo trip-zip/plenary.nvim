@@ -296,14 +296,14 @@ function Path:expand()
     if expanded == nil then
       expanded = vim.fn.fnamemodify(self.filename, ":p")
     end
-  elseif string.find(self.filename, "%$") then
-    local rep = string.match(self.filename, "([^%$][^/]*)")
-    local val = os.getenv(rep)
-    if val then
-      expanded = string.gsub(string.gsub(self.filename, rep, val), "%$", "")
-    else
-      expanded = nil
-    end
+  --elseif string.find(self.filename, "%$") then
+    --local rep = string.match(self.filename, "([^%$][^/]*)")
+    --local val = os.getenv(rep)
+    --if val then
+      --expanded = string.gsub(string.gsub(self.filename, rep, val), "%$", "")
+    --else
+      --expanded = nil
+    --end
   else
     expanded = self.filename
   end
