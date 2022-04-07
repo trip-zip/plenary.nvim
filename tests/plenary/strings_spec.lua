@@ -58,7 +58,10 @@ describe("strings", function()
         args = { "アイウエオ", 10, nil, 1 },
         expected = { single = "アイウエオ", double = "アイウエオ" },
       },
-      { args = { "アイウエオ", 9, nil, 1 }, expected = { single = "アイウエ…", double = "アイウ…" } },
+      {
+        args = { "アイウエオ", 9, nil, 1 },
+        expected = { single = "アイウエ…", double = "アイウ…" },
+      },
       { args = { "アイウエオ", 8, nil, 1 }, expected = { single = "アイウ…", double = "アイウ…" } },
       { args = { "├─┤", 7, nil, 1 }, expected = { single = "├─┤", double = "├─┤" } },
       { args = { "├─┤", 6, nil, 1 }, expected = { single = "├─┤", double = "├─┤" } },

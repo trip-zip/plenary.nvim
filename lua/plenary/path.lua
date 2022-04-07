@@ -146,6 +146,7 @@ end
 -- S_IFLNK  = 0o120000  # symbolic link
 -- S_IFSOCK = 0o140000  # socket file
 
+---@class Path
 local Path = {
   path = path,
 }
@@ -397,7 +398,7 @@ local shorten = (function()
     local ffi = require "ffi"
     ffi.cdef [[
     typedef unsigned char char_u;
-    char_u *shorten_dir(char_u *str);
+    void shorten_dir(char_u *str);
     ]]
     return function(filename)
       if not filename or is_uri(filename) then
@@ -406,7 +407,8 @@ local shorten = (function()
 
       local c_str = ffi.new("char[?]", #filename + 1)
       ffi.copy(c_str, filename)
-      return ffi.string(ffi.C.shorten_dir(c_str))
+      ffi.C.shorten_dir(c_str)
+      return ffi.string(c_str)
     end
   end
   return function(filename)
@@ -833,13 +835,50 @@ end
 function Path:iter()
   local data = self:readlines()
   local i = 0
-  local n = table.getn(data)
+  local n = #data
   return function()
     i = i + 1
     if i <= n then
       return data[i]
     end
   end
+end
+
+function Path:readbyterange(offset, length)
+  self = check_self(self)
+
+  local fd = uv.fs_open(self:expand(), "r", 438)
+  if not fd then
+    return
+  end
+  local stat = assert(uv.fs_fstat(fd))
+  if stat.type ~= "file" then
+    uv.fs_close(fd)
+    return nil
+  end
+
+  if offset < 0 then
+    offset = stat.size + offset
+    -- Windows fails if offset is < 0 even though offset is defined as signed
+    -- http://docs.libuv.org/en/v1.x/fs.html#c.uv_fs_read
+    if offset < 0 then
+      offset = 0
+    end
+  end
+
+  local data = ""
+  while #data < length do
+    local read_chunk = assert(uv.fs_read(fd, length - #data, offset))
+    if #read_chunk == 0 then
+      break
+    end
+    data = data .. read_chunk
+    offset = offset + #read_chunk
+  end
+
+  assert(uv.fs_close(fd))
+
+  return data
 end
 
 return Path
